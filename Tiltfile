@@ -78,13 +78,13 @@ local_resource(
 
 # wasm
 
-local_resource(
-    name = "wasm-gen",
-    deps = ["solana"],
-    dir = "solana",
-    cmd = "tilt docker build -- -f Dockerfile.wasm -o type=local,dest=.. .",
-    env = {"DOCKER_BUILDKIT": "1"},
-)
+#local_resource(
+#    name = "wasm-gen",
+#    deps = ["solana"],
+#    dir = "solana",
+#    cmd = "tilt docker build -- -f Dockerfile.wasm -o type=local,dest=.. .",
+#    env = {"DOCKER_BUILDKIT": "1"},
+#)
 
 # node
 
@@ -130,7 +130,8 @@ def build_node_yaml():
 
 k8s_yaml_with_ns(build_node_yaml())
 
-k8s_resource("guardian", resource_deps = ["proto-gen", "solana-devnet"], port_forwards = [
+#k8s_resource("guardian", resource_deps = ["proto-gen", "solana-devnet"], port_forwards = [
+k8s_resource("guardian", resource_deps = ["proto-gen"], port_forwards = [
     port_forward(6060, name = "Debug/Status Server [:6060]", host = webHost),
     port_forward(7070, name = "Public gRPC [:7070]", host = webHost),
     port_forward(7071, name = "Public REST [:7071]", host = webHost),
@@ -158,25 +159,25 @@ docker_build(
 
 # solana smart contract
 
-docker_build(
-    ref = "solana-contract",
-    context = "solana",
-    dockerfile = "solana/Dockerfile",
-)
+#docker_build(
+#    ref = "solana-contract",
+#    context = "solana",
+#    dockerfile = "solana/Dockerfile",
+#)
 
 # solana local devnet
 
-k8s_yaml_with_ns("devnet/solana-devnet.yaml")
+#k8s_yaml_with_ns("devnet/solana-devnet.yaml")
 
-k8s_resource(
-    "solana-devnet",
-    resource_deps = ["wasm-gen"],
-    port_forwards = [
-        port_forward(8899, name = "Solana RPC [:8899]", host = webHost),
-        port_forward(8900, name = "Solana WS [:8900]", host = webHost),
-        port_forward(9000, name = "Solana PubSub [:9000]", host = webHost),
-    ],
-)
+#k8s_resource(
+#    "solana-devnet",
+#    resource_deps = ["wasm-gen"],
+#    port_forwards = [
+#        port_forward(8899, name = "Solana RPC [:8899]", host = webHost),
+#        port_forward(8900, name = "Solana WS [:8900]", host = webHost),
+#        port_forward(9000, name = "Solana PubSub [:9000]", host = webHost),
+#    ],
+#)
 
 # eth devnet
 
@@ -207,7 +208,8 @@ if pyth:
     )
     k8s_yaml_with_ns("./devnet/pyth.yaml")
 
-    k8s_resource("pyth", resource_deps = ["solana-devnet"])
+    #k8s_resource("pyth", resource_deps = ["solana-devnet"])
+    k8s_resource("pyth", resource_deps = [])
 
     # pyth2wormhole client autoattester
     docker_build(
@@ -221,7 +223,8 @@ if pyth:
     k8s_yaml_with_ns("devnet/p2w-attest.yaml")
     k8s_resource(
         "p2w-attest",
-        resource_deps = ["solana-devnet", "pyth", "guardian"],
+        #resource_deps = ["solana-devnet", "pyth", "guardian"],
+        resource_deps = ["pyth", "guardian"],
         port_forwards = [],
     )
 
@@ -250,7 +253,8 @@ if bridge_ui:
 
     k8s_resource(
         "bridge-ui",
-        resource_deps = ["proto-gen-web", "wasm-gen"],
+        #resource_deps = ["proto-gen-web", "wasm-gen"],
+        resource_deps = ["proto-gen-web"],
         port_forwards = [
             port_forward(3000, name = "Bridge UI [:3000]", host = webHost),
         ],
